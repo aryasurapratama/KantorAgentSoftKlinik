@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Kantor AI: dev",
+      "type": "shell",
+      "command": "npm.cmd run dev",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Kantor AI: test",
+      "type": "shell",
+      "command": "npm.cmd test",
+      "problemMatcher": []
+    },
+    {
+      "label": "9Router: health check",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/coding.js", "--check"],
+      "problemMatcher": []
+    }
+  ]
+}

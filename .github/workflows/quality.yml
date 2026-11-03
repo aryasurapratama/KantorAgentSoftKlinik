@@ -1,0 +1,52 @@
+name: Quality
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=moderate
+      - run: npm test
+      - run: npm run build
+      - run: node scripts/check-build.js
+  browser:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:workspace
+      - run: npm run test:hq
+      - run: npm run test:a11y
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-validation
+          path: |
+            data/workspace-validation
+            data/hq-validation
+            data/accessibility-validation
+          if-no-files-found: ignore

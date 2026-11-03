@@ -29,15 +29,16 @@ export async function createStorage(options = {}) {
   // PostgreSQL is opt-in via a connection URL (or an injected pool). Keeping
   // this branch before any filesystem access preserves the existing JSON mode
   // and permits deployments where no local data directory exists.
-  const postgresUrl = postgresDatabaseUrl ?? process.env.STORAGE_DATABASE_URL ?? process.env.POSTGRES_URL ??
+  const forceJson = backend === 'json' || backend === 'file' || backend === 'json-file' || process.env.STORAGE_BACKEND === 'json' || process.env.STORAGE_BACKEND === 'file' || process.env.STORAGE_BACKEND === 'json-file';
+  const postgresUrl = forceJson ? undefined : (postgresDatabaseUrl ?? process.env.STORAGE_DATABASE_URL ?? process.env.POSTGRES_URL ??
     ((backend === 'postgres' || backend === 'postgresql' || process.env.STORAGE_BACKEND === 'postgres' || process.env.STORAGE_BACKEND === 'postgresql' || process.env.DATABASE_URL)
       ? process.env.DATABASE_URL
-      : undefined);
-  const postgresRequested = postgresPool || postgresUrl || backend === 'postgres' || backend === 'postgresql' || process.env.STORAGE_BACKEND === 'postgres' || process.env.STORAGE_BACKEND === 'postgresql';
+      : undefined));
+  const postgresRequested = !forceJson && (postgresPool || postgresUrl || backend === 'postgres' || backend === 'postgresql' || process.env.STORAGE_BACKEND === 'postgres' || process.env.STORAGE_BACKEND === 'postgresql');
   if (postgresRequested) {
     const { connectPostgres, createPostgresStorage } = await import('./storage-postgres.js');
     const connection = await connectPostgres({ databaseUrl: postgresUrl, pool: postgresPool, pg: postgresModule });
-    return createPostgresStorage(connection);
+    return createPostgresStorage({ ...connection, dataDir });
   }
   if (!dataDir) throw new TypeError('dataDir is required for JSON storage');
   await fs.mkdir(dataDir, { recursive: true, mode: 0o700 });

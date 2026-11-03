@@ -5,3 +5,4 @@ data/
 *.log
 playwright-report/
 test-results/
+.kantor-ai/

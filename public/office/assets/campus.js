@@ -102,15 +102,24 @@ export function createCampus(THREE, scene, roster, departments) {
   box(0, .035, -4, 65, .035, 5, '#e1e4dc');
   box(0, .035, 12, 65, .035, 4.5, '#e1e4dc');
   for (const z of [-6.28, -1.72, 10, 14]) box(0, .06, z, 65, .02, .055, '#c8cdbe');
-  box(0, 1.7, -19, 66.5, 3.4, .2, palette.wall);
-  box(-33, .55, 3, .18, 1.1, 46, palette.wall);
-  box(33, .55, 3, .18, 1.1, 46, palette.wall);
+  // Rear facade frames the two rows of division rooms.
+  const northWallSpans = [[-30.5, -1.5], [1.5, 30.5]];
+  for (const [left, right] of northWallSpans) box((left + right) / 2, 1.7, -19, right - left, 3.4, .2, palette.wall);
+  // Structural rhythm: exposed columns, edge beams, and a legible central atrium.
+  // These cues give the cutaway a believable load path at overview distance.
+  for (const x of [-31, -15, 1, 17, 31]) {
+    for (const z of [-17.5, 9.5]) {
+      box(x, 1.65, z, .38, 3.2, .38, palette.frame);
+      box(x, 3.25, z, 4.2, .18, .42, palette.frame);
+    }
+  }
   // Warm timber canopy and recessed entrance rhythm.
   box(0, 3.25, -18.45, 66, .16, 1.1, palette.oak);
-  for (let x = -30; x <= 30; x += 4) {
-    box(x, 2, -18.84, 3.6, 2.5, .08, '#a6c5c7');
-    box(x + 1.87, 2, -18.76, .09, 2.6, .1, palette.frame);
-    box(x, .7, -18.65, 3.9, .12, .42, palette.oak);
+  for (const [left, right] of northWallSpans) for (let x = left + 2; x < right - 1; x += 4) {
+    const width = Math.min(3.6, 2 * (right - x) - .2);
+    box(x, 2, -18.84, width, 2.5, .08, '#a6c5c7');
+    box(x + width / 2, 2, -18.76, .09, 2.6, .1, palette.frame);
+    box(x, .7, -18.65, width, .12, .42, palette.oak);
   }
   for (const z of [-4, 12]) for (const x of [-16, 0, 16]) {
     box(x, .34, z, 3.5, .65, .85, palette.ivory);
@@ -163,89 +172,76 @@ export function createCampus(THREE, scene, roster, departments) {
     }
   }
 
-  const spaces=[],circulation=[];
-  // One connected headquarters floor: public south, staff centre, restricted north.
-  box(0,-.42,-14,108,.7,116,'#a3b1aa');box(0,-.04,-14,107,.05,115,palette.ivory);
-  for(const z of [-68,-52,-36,-20,-4,12,16,32]){box(0,.02,z,104,.025,3.8,'#dce1d9');circulation.push({name:'Koridor '+z,x:0,z,width:104,depth:3.8});}
-  for(const x of [-50,-32,32,50]){box(x,.025,-14,2.5,.025,112,'#dce1d9');circulation.push({name:'Koridor samping',x,z:-14,width:2.5,depth:112});}
-  function monitor(x,z,w=1.2){box(x,1.4,z,w,.8,.1,palette.frame);box(x,1.4,z+.06,w-.1,.67,.02,'#86a5a5');box(x,1,z,.07,.6,.1,palette.frame);}
-  function bench(x,z,w=3,d=1.2){soft(x,.8,z,w,.13,d,palette.oak);for(const dx of [-w/2+.15,w/2-.15])box(x+dx,.4,z,.1,.8,d-.1,palette.frame);}
-  function suite(id,name,x,z,width,depth,zone,kind='office',label=true){
-    const entry={x:x+width/2-1.5,z:z+depth/2};
-    const p={id,name,x,z,width,depth,zone,entry,label,description:name+' dengan pintu ke koridor.',features:[]};spaces.push(p);
-    const tint={research:'#b6c6c5',robotics:'#c8bd9b',technical:'#a2b1af',executive:'#c3b095',creative:'#c0b3bf',wellness:'#bfcbb7',public:'#ddd4c3',operations:'#c4c8be'}[zone]||'#c6ccbe';
-    box(x,.065,z,width-.1,.08,depth-.1,tint);box(x,1.35,z-depth/2,width,2.7,.15,palette.wall);
-    for(const side of [-1,1]){box(x+side*width/2,1.3,z,.06,2.6,depth,palette.glass);box(x+side*width/2,2.65,z,.09,.09,depth,palette.frame);}
-    // South wall ends 3 metres before the right edge, leaving a real doorway.
-    box(x-1.5,1.3,z+depth/2,width-3,2.6,.06,palette.glass);box(x-1.5,2.65,z+depth/2,width-3,.09,.1,palette.frame);
-    box(entry.x,.09,entry.z,2.4,.05,.65,palette.oak);box(x+width/2,1.3,entry.z,.1,2.6,.15,palette.frame);
-    box(x-width/2+.8,1.8,entry.z+.05,1.2,.35,.04,palette.dark);box(x,2.64,z-depth/2+.13,width-.5,.035,.08,'#f4cf87');
-    const back=z-depth/2+1;
-    if(kind==='office'||kind==='lab'){
-      for(const dx of [-width/2+2,0]){bench(x+dx,z-1,2.1,1);monitor(x+dx,z-1.3);chair(x+dx,z);}
-      cabinet(x-width/2+2.4,back,3.5);
-      if(kind==='lab'){bench(x-1,z+2,4,1.1);for(let j=0;j<3;j++){box(x-2+j,1.1,z+2,.5,.5,.45,palette.ivory);box(x-2+j,1.4,z+2,.3,.08,.3,palette.frame);}p.features=['Workstation riset','Meja instrumen','Penyimpanan laboratorium'];}else plant(x-width/2+1,z+depth/2-1);
-    }else if(kind==='meeting'){
-      bench(x-1,z,Math.min(width-4,7),2);for(let i=0;i<3;i++){chair(x-3+i*1.7,z-1.6,Math.PI);chair(x-3+i*1.7,z+1.6);}monitor(x-1,z-depth/2+.15,4);
-    }else if(kind==='lounge'){
-      sofa(x-1,z-1.5,Math.min(width-4,5),palette.sage);coffeeTable(x-1,z+.7,1.6);plant(x-width/2+1,z+depth/2-1);
-    }else if(kind==='server'){
-      for(const dx of [-3.8,-1.5,.8])for(const dz of [-2,1.1]){box(x+dx,1.3,z+dz,1.3,2.6,1.5,'#3a4949');for(let i=0;i<10;i++){box(x+dx,.3+i*.22,z+dz+.77,1.1,.12,.035,'#73807d');box(x+dx+.43,.3+i*.22,z+dz+.8,.04,.04,.03,'#adc3ac');}}
-      box(x-1.5,2.9,z,7,.1,.5,palette.frame);box(x+width/2-1,2.3,back,.6,.7,.5,'#ae6d60');p.features=['Rak komputasi kompak','Lorong dingin dan panas','Tray kabel','Pemadaman gas','Akses terbatas'];
-    }else if(kind==='robot'){
-      bench(x-width/2+2.5,back+1,3.5,1.2);box(x-1,.16,z+.5,width-5,.08,depth-4,'#929b91');
-      for(const dz of [-2,3])box(x-1,.22,z+dz,width-4,.035,.15,'#d8c578');
-      for(const dx of [-width/2+1,width/2-3]){box(x+dx,1,z+.5,.06,1.8,5,palette.glass);box(x+dx,1.95,z+.5,.1,.08,5,palette.frame);}
-      round(x-1,.55,z,1.3,.9,1.3,palette.frame);box(x-1,1.25,z,.35,1,.35,palette.ivory);box(x-.45,1.8,z,1.4,.3,.3,palette.oak);box(x+.2,1.5,z,.2,.5,.2,palette.frame);p.features=['Sel uji terlindung','Marka keselamatan','Bangku kerja robotik'];
-    }else if(kind==='utility'){
-      for(const dx of [-width/2+1.7,0]){box(x+dx,1,z-1,1.8,2,1.4,'#a1aaa4');for(let j=0;j<6;j++)box(x+dx,.5+j*.2,z-.28,1.4,.07,.03,palette.frame);}box(x,2.5,back,width-1,.4,.5,palette.ivory);
-    }else if(kind==='studio'){
-      for(let j=0;j<10;j++)box(x-width/2+.7+j*.65,1.5,z-depth/2+.12,.35,2.3,.12,'#7f767b');bench(x-1,z,3,1.4);monitor(x-1,z-.4,2);chair(x-2,z+1.3);chair(x,z+1.3);
-      for(const dx of [-width/2+1,width/2-3]){round(x+dx,.1,z+1,.8,.1,.8,palette.frame);box(x+dx,1.1,z+1,.06,2.2,.06,palette.frame);box(x+dx,2.1,z+1,.7,.6,.3,palette.ivory);}round(x-1,1.7,z+.1,.15,.3,.15,palette.frame);
-    }else if(kind==='classroom'){
-      for(let r=0;r<3;r++)for(let c=0;c<3;c++){let tx=x-width/2+2+c*2.6,tz=z-depth/2+3+r*2;bench(tx,tz,1.8,.7);chair(tx,tz+.7);}monitor(x,z-depth/2+.15,5);
-    }else if(kind==='care'){
-      box(x-1,.5,z,1.6,.6,3.1,palette.ivory);soft(x-1,.87,z,1.6,.18,3,'#dfe3d6');soft(x-1,1,z-1,.9,.2,.5,palette.ivory);cabinet(x-width/2+1.8,back,2.2);chair(x+1,z);
-    }else if(kind==='wc'){
-      round(x-1,.5,z-.7,.8,.8,1.1,palette.ivory);box(x-1,.9,z-1,.7,.7,.25,palette.ivory);cabinet(x-1,z+1.5,2);box(x-2,.9,z,.07,.1,1.7,palette.frame);
-    }
-    return p;
+  // Shared amenities stay open: the only enclosed suites are the divisions above.
+  const spaces = [
+    { id: 'reception', name: 'Resepsionis', x: 0, z: 19, width: 12, depth: 9 },
+    { id: 'meeting', name: 'Area Rapat', x: -24, z: 20, width: 14, depth: 10 },
+    { id: 'lounge', name: 'Area Santai', x: -10, z: 20, width: 10, depth: 10 },
+    { id: 'cafe', name: 'Kafe & Pantry', x: 12, z: 20, width: 10, depth: 10 },
+    { id: 'terrace', name: 'Teras', x: 26, z: 20, width: 10, depth: 10 },
+  ];
+  const circulation = [-4, 12].map(z => ({ name: 'Koridor divisi', x: 0, z, width: 65, depth: 4.5 }));
+  const wayfinding = [{ name: 'PINTU MASUK', x: 0, z: 29, y: .2 }];
+  box(0, .06, 20, 64, .04, 11, '#e0d0b4');
+  for (let x = -31; x <= 31; x += 2) box(x, .085, 20, .025, .006, 10.8, '#d1bea1');
+
+  // Reception shares the social strip with meeting, lounge, pantry and terrace.
+  soft(0, .65, 19.5, 6.5, 1.2, 1.7, palette.ivory);
+  box(0, 1.3, 19.5, 6.7, .12, 1.9, palette.oak);
+  box(0, 2, 15.1, 8.4, 3, .16, palette.frame);
+  plant(-4.7, 22.8); plant(4.7, 22.8);
+
+  box(-24, .105, 20.5, 12.5, .035, 8.5, '#c3cbbd');
+  soft(-24, .85, 20.5, 8, .16, 2.3, palette.oak);
+  for (const x of [-27, -24, -21]) {
+    chair(x, 18.5, Math.PI); chair(x, 22.5);
   }
-  const labs=['Riset AI','Machine Learning','Deep Learning','AI Generatif','Pemrosesan Bahasa','Visi Komputer','AI Multimodal','Pelatihan Model','Evaluasi & Benchmark','AI Terapan','Algoritma AI','Sistem Otonom'];
-  labs.forEach((n,i)=>suite('lab-'+i,n,-40+i%6*16,-44+Math.floor(i/6)*16,14,11,'research','lab'));
-  [['robotics','Laboratorium Robotik','robot'],['robot-test','Uji Robot Otonom','robot'],['iot','IoT & Prototipe Elektronik','lab'],['gpu','GPU Compute Room','server'],['server','Server & Jaringan','server'],['ups','UPS & Pendingin Presisi','utility']].forEach(([id,n,k],i)=>suite(id,n,-40+i*16,-60,14,11,i<3?'robotics':'technical',k));
-  [['ceo','Kantor CEO',-12,'office'],['chief','CTO & Kepala Ilmuwan',4,'office'],['board','Ruang Dewan Direksi',20,'meeting'],['academy','Akademi & Perpustakaan',36,'classroom']].forEach(([id,n,z,k])=>suite(id,n,-41,z,14,11,id==='academy'?'corporate':'executive',k));
-  [['soc','SOC & Keamanan Siber',-12,'office','technical'],['noc','NOC, MLOps & Cloud',4,'office','technical'],['media','Studio Video & Foto',20,'studio','creative'],['audio','Podcast & Pascaproduksi',36,'studio','creative']].forEach(([id,n,z,k,zone])=>suite(id,n,41,z,14,11,zone,k));
-  suite('auditorium','Auditorium & Pelatihan',-24,24,14,11,'public','classroom');suite('visitor','Lounge Tamu',-8,24,14,11,'public','lounge');suite('cafe','Lounge & Kafe',8,24,14,11,'wellness','lounge');suite('innovation','Hub Inovasi & Rapat',24,24,14,11,'corporate','meeting');
-  cabinet(8,19.6,8);box(8,1.25,19.6,8,.1,1.2,palette.frame);box(5.5,1.65,19.6,1,.7,.7,palette.frame);
-  [['musala','Musala',-26,'lounge'],['aid','Pertolongan Pertama',-18,'care'],['nursing','Ruang Laktasi',18,'care'],['wc','Toilet Aksesibel',26,'wc']].forEach(([id,n,x,k])=>suite(id,n,x,38,6,7,'wellness',k));
-  // Central lobby: direct public approach; employee screening lane on the east.
-  spaces.push({id:'lobby',name:'Lobi & Resepsionis',x:0,z:38,width:26,depth:8,zone:'public',description:'Lobi tinggi ganda dengan registrasi dan pintu geser.',features:['Registrasi tamu','RFID karyawan','Biometrik','CCTV'],entry:{x:0,z:44},label:true});
-  soft(-5,.7,37,6.5,1.3,1.7,palette.ivory);box(-5,1.4,37,6.7,.12,1.9,palette.oak);monitor(-5,36.7);box(-5,2.7,34,7,1.4,.16,palette.frame);
-  suite('security','Pos Keamanan',-8,31,5,3.5,'public','none',false);bench(-8,31,3,.8);monitor(-8,30.7,1.7);
-  for(const x of [-12,12]){box(x,3,40,.45,6,.45,palette.wall);plant(x,42,true);}
-  // Sliding leaves park outside a clear 3.2 m entry opening.
-  for(const x of [-3,3]){box(x,1.9,44,2.7,3.8,.06,palette.glass);box(x,3.85,44,2.8,.1,.1,palette.frame);}
-  box(0,5.8,47,25,.22,8,palette.oak);for(const x of [-11,11])box(x,2.9,49,.2,5.8,.2,palette.frame);
-  box(0,-.08,48,27,.24,8,palette.ivory);
-  for(let i=0;i<12;i++)box(0,-.25+i*.015,53-i*.4,6,.08,.44,palette.ivory);
-  box(0,-.35,57,120,.15,8,'#606a66');for(let i=0;i<7;i++)box(0,-.25,54.5+i*.4,6,.025,.18,palette.ivory);
-  for(const x of [-32,32]){box(x,-.22,52,22,.06,5,'#c0c7bc');for(let j=0;j<5;j++)box(x-9+j*4.5,-.17,52,.08,.025,4.6,palette.ivory);}
-  function car(x,z,c){soft(x,.6,z,1.8,.7,3.8,c);soft(x,.98,z-.15,1.6,.6,2,palette.glass);for(const dx of [-.95,.95])for(const dz of [-1.1,1.1])box(x+dx,.3,z+dz,.18,.55,.6,palette.frame);}
-  car(-37,52,'#e6e6df');car(-28,52,'#71827e');car(34,52,'#b6b5ad');
-  // Service edge: rear rooms, loading, exterior egress and dedicated equipment access.
-  [['store','Gudang Peralatan'],['maintenance','HVAC & Pemeliharaan'],['waste','Pengelolaan Limbah']].forEach(([id,n],i)=>suite(id,n,-40+i*16,-73,14,7,'operations','utility',false));
-  box(-24,-.42,-73,50,.7,12,'#a3b1aa');box(-24,-.04,-73,50,.05,12,palette.ivory);box(25,-.1,-73,42,.1,10,'#a1aaa0');
-  for(const x of [-53,53])for(let z=-65;z<=41;z+=4){box(x,.25,z,.18,.5,3.8,palette.wall);box(x,1.8,z,.055,2.5,3.8,palette.glass);box(x,1.8,z-2,.12,3.6,.12,palette.frame);}
-  // Restricted north wing has a cross-wall; controlled doors align with staff corridors.
-  for(const x of [-41,-16,16,41])box(x,1.3,-20,Math.abs(x)===41?15:29,2.6,.06,palette.glass);
-  for(const x of [-32,0,32]){for(const dx of [-1.2,1.2]){box(x+dx,.7,-20,.3,1.4,.9,palette.frame);box(x+dx,1.43,-20,.23,.06,.35,'#84a38c');}box(x,2.5,-20,2.2,.3,.1,palette.frame);}
-  // Side promenades also cross the restricted threshold only through controlled gates.
-  for(const x of [-50,50]){for(const dx of [-.9,.9]){box(x+dx,1.3,-20,.7,2.6,.08,palette.glass);box(x+dx,.7,-20,.18,1.4,.55,palette.frame);}box(x,2.5,-20,2.2,.28,.1,palette.frame);box(x,1.7,-20,.08,1.25,.08,'#c5a667');}
-  for(const x of [5,7,9]){box(x,.7,34,.3,1.4,1,palette.frame);box(x,1.45,34,.22,.08,.4,'#84a38c');}
-  for(const x of [-50,50])for(const z of [-65,40]){spaces.push({id:'exit-'+x+'-'+z,name:'Pintu Darurat',x,z,width:3,depth:3,zone:'operations',entry:{x,z:z+1.5},label:false,description:'Pintu keluar langsung ke jalur luar.'});box(x,2.5,z,1,.35,.1,'#799a83');box(x-1,1,z,.3,.75,.25,'#b46d60');}
-  for(const x of [-59,59])for(const z of [-62,-44,-24,0,24,42]){box(x,.15,z,4,.3,5,'#b2bba4');plant(x,z,true);part('leaf',x,3.1,z,3.2,3.7,3.1,'#769174');}
-  box(-55,.02,23,6,.13,29,'#a08a6b');for(const z of [15,24,33]){coffeeTable(-55,z,1.6);chair(-55,z+1.4);chair(-55,z-1.4,Math.PI);}
+  box(-24, 1.85, 15.1, 6, 2, .16, palette.frame);
+  plant(-30, 23.5);
+
+  box(-10, .105, 20.5, 10, .035, 8.5, '#c4c7b7');
+  sofa(-10.5, 18.3, 5, palette.sage);
+  coffeeTable(-10.5, 21, 1.6); chair(-7.8, 21.8, Math.PI, '#ac9579');
+  cabinet(-13.2, 24.1, 2.2); plant(-6, 24);
+
+  cabinet(12, 16.2, 8);
+  box(9.3, 1.6, 16.2, 1, .7, .65, palette.frame);
+  box(12.4, 1.3, 16.2, 1.2, .13, .8, '#879b95');
+  coffeeTable(11, 21, 1.8); chair(9.6, 21); chair(12.4, 21, Math.PI);
+  plant(16.5, 24);
+
+  box(26, .105, 20.5, 10, .035, 8.5, '#b5c0a5');
+  sofa(25, 18.3, 5, '#c3b49b'); coffeeTable(25, 21, 1.5);
+  for (const x of [21.7, 29.8]) plant(x, 24, true);
+
+  // A short public approach keeps the full office legible at overview distance.
+  box(0, -.12, 29.2, 24, .22, 5.5, palette.ivory);
+  for (const x of [-10.5, 10.5]) {
+    box(x, 1.55, 26.5, .18, 3.1, .18, palette.frame);
+    plant(x, 29.2, true);
+  }
+  box(0, 3.2, 27.5, 22, .18, 4, palette.oak);
+  for (const x of [-3, 3]) {
+    box(x, 1.5, 26.4, 2.6, 3, .055, palette.glass);
+    box(x, 3.05, 26.4, 2.7, .08, .09, palette.frame);
+  }
+  box(0, -.26, 34, 84, .15, 6, '#606a66');
+  for (let z = 31.8; z < 36.5; z += .65) box(0, -.17, z, 4, .025, .24, palette.ivory);
+  for (const x of [-25, 25]) {
+    box(x, -.17, 29, 18, .06, 5, '#c0c7bc');
+    for (let i = 0; i < 5; i++) box(x - 8 + i * 4, -.12, 29, .08, .025, 4.5, palette.ivory);
+  }
+  function car(x, z, color) {
+    soft(x, .6, z, 1.8, .7, 3.8, color);
+    soft(x, .98, z - .15, 1.6, .6, 2, palette.glass);
+    for (const dx of [-.95, .95]) for (const dz of [-1.1, 1.1]) box(x + dx, .3, z + dz, .18, .55, .6, palette.frame);
+  }
+  car(-29, 29, '#e6e6df'); car(25, 29, '#71827e');
+  for (const x of [-37, 37]) for (const z of [-18, 1, 22]) {
+    box(x, .15, z, 4, .3, 5, '#b2bba4');
+    plant(x, z, true);
+    part('leaf', x, 3.1, z, 3.2, 3.7, 3.1, '#769174');
+  }
   const dummy = new THREE.Object3D();
   for (const { shape, color, parts } of groups.values()) {
     const glass = color === palette.glass;
@@ -266,10 +262,8 @@ export function createCampus(THREE, scene, roster, departments) {
     mesh.position.set(x, y, z); mesh.rotation.y = rotation; scene.add(mesh);
   }
   for (const room of rooms) panel(surfaces.screen, room.x - 2.9, 1.85, room.z - 5.18, 4.15, 1.4);
-  panel(surfaces.brand, 0, 2.05, 14.81, 7.8, 2.9);
-  panel(surfaces.brand, 26, 1.3, 31.02, 8.2, 2.15);
-  panel(surfaces.screen, -25, 1.94, 14.67, 5.3, 1.42);
-  panel(surfaces.wallArt, -12, 1.85, 14.65, 4.6, 2.5);
+  panel(surfaces.brand, 0, 2.05, 15.2, 7.8, 2.9);
+  panel(surfaces.screen, -24, 1.85, 15.2, 5.3, 1.42);
   const warmth=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:surfaces.glow,transparent:true,opacity:.25,depthWrite:false}),rooms.length*2);
   rooms.forEach((room,i)=>{dummy.position.set(room.x,.14,room.z-3.2);dummy.rotation.set(-Math.PI/2,0,0);dummy.scale.set(14,6,1);dummy.updateMatrix();warmth.setMatrixAt(i*2,dummy.matrix);dummy.position.set(room.x,2.65,room.z-5.38);dummy.rotation.set(0,0,0);dummy.scale.set(14,1.5,1);dummy.updateMatrix();warmth.setMatrixAt(i*2+1,dummy.matrix)});scene.add(warmth);
   // Baked contact shadows: no GPU shadow map, no per-frame geometry work.
@@ -283,6 +277,6 @@ export function createCampus(THREE, scene, roster, departments) {
     dummy.position.set(x, .125, z); dummy.rotation.set(-Math.PI / 2, 0, 0); dummy.scale.set(w, d, 1); dummy.updateMatrix(); shadowMesh.setMatrixAt(i, dummy.matrix);
   });
   scene.add(shadowMesh);
-  return { rooms, homes, spaces, circulation, bounds: { minX: -63, maxX: 63, minZ: -80, maxZ: 62, maxY: 6.5 }, sharedSpaces: spaces.filter(s=>s.label).map(s=>({...s,y:.25})) };
+  return { rooms, homes, spaces, circulation, wayfinding, bounds: { minX: -42, maxX: 42, minZ: -22, maxZ: 38, maxY: 5.2 }, sharedSpaces: spaces.map(s=>({...s,y:.25})) };
 }
 

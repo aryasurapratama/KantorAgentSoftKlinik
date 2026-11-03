@@ -1,0 +1,19 @@
+{
+  "files.eol": "\n",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.env.windows": {
+    "KANTOR_AI_URL": "http://127.0.0.1:4318",
+    "NINE_ROUTER_URL": "http://127.0.0.1:20128"
+  },
+  "search.exclude": {
+    "**/data/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true
+  },
+  "files.watcherExclude": {
+    "**/data/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true
+  }
+}
